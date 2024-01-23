@@ -24,3 +24,152 @@ str(dados_rh)
 summary(dados_rh)
 
 ##### Limpeza e Transformação ##### 
+
+# Transformando variáveis categóricas para o tipo fator
+dados_rh$Attrition                <- as.factor(dados_rh$Attrition)
+dados_rh$BusinessTravel           <- as.factor(dados_rh$BusinessTravel)
+dados_rh$Department               <- as.factor(dados_rh$Department)
+dados_rh$Education                <- as.factor(dados_rh$Education)
+dados_rh$EducationField           <- as.factor(dados_rh$EducationField)
+dados_rh$'Employee Source'        <- as.factor(dados_rh$'Employee Source')
+dados_rh$EnvironmentSatisfaction  <- as.factor(dados_rh$EnvironmentSatisfaction)
+dados_rh$Gender                   <- as.factor(dados_rh$Gender)
+dados_rh$JobInvolvement           <- as.factor(dados_rh$JobInvolvement)
+dados_rh$JobLevel                 <- as.factor(dados_rh$JobLevel)
+dados_rh$JobRole                  <- as.factor(dados_rh$JobRole)
+dados_rh$JobSatisfaction          <- as.factor(dados_rh$JobSatisfaction)
+dados_rh$MaritalStatus            <- as.factor(dados_rh$MaritalStatus)
+dados_rh$OverTime                 <- as.factor(dados_rh$OverTime)
+dados_rh$PerformanceRating        <- as.factor(dados_rh$PerformanceRating)
+dados_rh$RelationshipSatisfaction <- as.factor(dados_rh$RelationshipSatisfaction)
+dados_rh$StockOptionLevel         <- as.factor(dados_rh$StockOptionLevel)
+dados_rh$WorkLifeBalance          <- as.factor(dados_rh$WorkLifeBalance)
+str(dados_rh)
+
+# Transformando variáveis numéricas para o tipo inteiro
+View(dados_rh)
+dados_rh$DistanceFromHome  <- as.integer(dados_rh$DistanceFromHome)
+dados_rh$MonthlyIncome     <- as.integer(dados_rh$MonthlyIncome)
+dados_rh$PercentSalaryHike <- as.integer(dados_rh$PercentSalaryHike)
+
+# Drop dos níveis de fatores com 0 count
+dados <- droplevels(dados_rh)
+str(dados_rh)
+summary(dados_rh)
+View(dados_rh)
+
+##### Engenharia de Atributos ##### 
+
+# Coluna de anos anteriores de experiência para visualizar melhor o 
+# perfil de experiência do funcionário.
+dados_rh$PriorYearsOfExperience <- dados_rh$TotalWorkingYears - dados_rh$YearsAtCompany
+View(dados_rh)
+
+# A estabilidade no emprego (job tenure) é a medida do tempo que um funcionário está empregado 
+# por seu empregador atual. A estabilidade no emprego de um funcionário é muito importante e 
+# muitas vezes os empregadores consideram a estabilidade no emprego um critério para a contratação 
+# de novos funcionários. A permanência no emprego pode ser longa ou curta.
+
+# Recurso de estabilidade média para traçar o perfil de permanência média 
+# dos funcionários em empresas anteriores.
+dados_rh$AverageTenure <- dados_rh$PriorYearsOfExperience / dados_rh$NumCompaniesWorked
+View(dados_rh)
+
+# A estabilidade média produz valores como Inf devido à natureza de sua derivação
+# Substituindo para zero.
+summary(dados_rh$AverageTenure)
+dados_rh$AverageTenure[!is.finite(dados_rh$AverageTenure)] <- 0
+summary(dados_rh$AverageTenure)
+View(dados_rh)
+
+# Dividindo os dados como base na coluna Termination, que indica se 
+# o funcionário foi desligado da empresa.
+dados_rh_1 <- dados_rh[dados_rh$Attrition != 'Termination']
+dados_rh_1 <- droplevels(dados_rh_1)
+dim(dados_rh_1)
+summary(dados_rh_1)
+
+# Mesmo filtro anterior, mas agora por demissão voluntária
+dados_rh_2 <- dados_rh[dados_rh$Attrition != 'Voluntary Resignation']
+dados_rh_2 <-droplevels(dados_rh_2)
+dim(dados_rh_2)  
+summary(dados_rh_2)
+
+##### Análise Exploratória ##### 
+
+# Plots de análise univariada
+ggplot(dados_rh) + geom_bar(aes(x = Gender))
+ggplot(dados_rh) + geom_density(aes(x = Age))
+ggplot(dados_rh) + geom_bar(aes(x = Attrition))
+ggplot(dados_rh) + geom_bar(aes(x = Department))
+ggplot(dados_rh) + geom_bar(aes(x = JobRole))
+ggplot(dados_rh) + geom_bar(aes(x = Education)) + facet_grid(~EducationField)
+
+# Multiplot Grid
+p.TotalWorkingYears       <- ggplot(dados_rh) + geom_density(aes(TotalWorkingYears))
+p.YearsAtCompany          <- ggplot(dados_rh) + geom_density(aes(YearsAtCompany))
+p.YearsSinceLastPromotion <- ggplot(dados_rh) + geom_density(aes(YearsSinceLastPromotion))
+p.YearsWithCurrManager    <- ggplot(dados_rh) + geom_density(aes(YearsWithCurrManager))
+p.YearsInCurrentRole      <- ggplot(dados_rh) + geom_density(aes(YearsInCurrentRole))
+p.PriorYearsOfExperience  <- ggplot(dados_rh) + geom_density(aes(PriorYearsOfExperience))
+
+# Organiza no grid
+grid.arrange(p.TotalWorkingYears, 
+             p.YearsAtCompany, 
+             p.YearsSinceLastPromotion, 
+             p.YearsWithCurrManager, 
+             p.YearsInCurrentRole, 
+             p.PriorYearsOfExperience, 
+             nrow = 2, 
+             ncol = 3)
+
+# Tempo de experiência anterior
+# Descobrindo a proporção de funcionários com menos de alguns anos de experiência 
+# (valores escolhidos: 1, 3, 5, 7, 10 anos)
+length(which(dados_rh$PriorYearsOfExperience < 1)) / length(dados_rh$PriorYearsOfExperience)  
+length(which(dados_rh$PriorYearsOfExperience < 3)) / length(dados_rh$PriorYearsOfExperience)   
+length(which(dados_rh$PriorYearsOfExperience < 5)) / length(dados_rh$PriorYearsOfExperience)   
+length(which(dados_rh$PriorYearsOfExperience < 7)) / length(dados_rh$PriorYearsOfExperience)   
+length(which(dados_rh$PriorYearsOfExperience < 10)) / length(dados_rh$PriorYearsOfExperience)  
+
+# Exemplo de insight:
+# 58% dos funcionários têm menos de 3 anos de experiência de trabalho antes de entrar na IBM
+# Possíveis problemas: conjuntos de habilidades subdesenvolvidos, base de jovens funcionários, 
+# mentalidade de "trabalho" imatura.
+
+# Idade
+length(which(dados_rh$Age < 30)) / length(dados_rh$Age)
+
+# Exemplo de insight:
+# Apenas 22% dos funcionários têm menos de 30 anos, a base de funcionários não é exatamente 
+# tão jovem como o esperado.
+
+# # Educação
+summary(dados_rh$Education)
+length(which(dados_rh$Education == 3)) / length(dados_rh$Education)
+length(which(dados_rh$Education == 4)) / length(dados_rh$Education)
+
+# Exemplo de insight:
+# Cerca de 39% dos funcionários são graduados e 27% realizaram o mestrado.
+# A busca pelo ensino superior pode ter levado a uma diminuição da experiência de trabalho.
+
+# Boxplot mostrando a distribuição do salário mensal para todos os 4 níveis 
+# de satisfação no trabalho de 1-4
+ggplot(data = subset(dados_rh, !is.na(JobSatisfaction)), aes(JobSatisfaction, MonthlyIncome)) + 
+  geom_boxplot()
+
+# Exemplo de Insight
+# Não há sinais óbvios de que um salário mais alto leva a uma maior satisfação no trabalho
+
+# Correlação
+cor(dados_rh$TotalWorkingYears, dados_rh$YearsAtCompany,          use = "complete.obs")
+cor(dados_rh$YearsAtCompany,    dados_rh$YearsInCurrentRole,      use = "complete.obs")
+cor(dados_rh$YearsAtCompany,    dados_rh$YearsSinceLastPromotion, use = "complete.obs")
+cor(dados_rh$YearsAtCompany,    dados_rh$YearsWithCurrManager,    use = "complete.obs")
+cor(dados_rh$TotalWorkingYears, dados_rh$MonthlyIncome,           use = "complete.obs")
+cor(dados_rh$YearsAtCompany,    dados_rh$MonthlyIncome,           use = "complete.obs")  
+
+# Scatterplots
+ggplot(dados_rh) + geom_point(aes(TotalWorkingYears, MonthlyIncome))
+ggplot(dados_rh) + geom_point(aes(YearsAtCompany, MonthlyIncome))
+
