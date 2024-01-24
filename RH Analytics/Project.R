@@ -173,3 +173,164 @@ cor(dados_rh$YearsAtCompany,    dados_rh$MonthlyIncome,           use = "complet
 ggplot(dados_rh) + geom_point(aes(TotalWorkingYears, MonthlyIncome))
 ggplot(dados_rh) + geom_point(aes(YearsAtCompany, MonthlyIncome))
 
+# Vamos investigar a relação do equilíbrio entre vida pessoal e profissional e renda mensal
+ggplot(data = subset(dados_rh, !is.na(WorkLifeBalance)), aes(WorkLifeBalance, MonthlyIncome)) + 
+  geom_boxplot()
+
+# Exemplo de insight
+# Os funcionários que avaliaram o equilíbrio entre vida profissional e pessoal igual a 1 também têm renda média mensal 
+# significativamente mais baixa.
+# Baixo equilíbrio entre vida profissional e baixo salário? Um problema que o departamento de RH precisa examinar.
+
+# Verificando a diferença salarial entre homens e mulheres.
+ggplot(data = subset(dados_rh, !is.na(Gender)), aes(Gender, MonthlyIncome, fill = Gender)) +
+  geom_boxplot() + 
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5, size = 10)) +
+  labs(x = "Gender", y = "Monthly Income", title = "Salário Mensal Entre Gêneros") +
+  coord_flip()
+
+# Exemplo de insight
+# Não há sinais de discriminação de gênero; na verdade, as mulheres ganham um pouco mais, em média, 
+# desconsiderando todos os outros fatores.
+
+# Função
+ggplot(data = subset(dados_rh, !is.na(JobRole))) + geom_boxplot(aes(JobRole, MonthlyIncome)) +
+  ggtitle("Salário Mensal Por Função")
+
+ggplot(data = subset(dados_rh, !is.na(JobRole))) + geom_boxplot(aes(JobRole, AgeStartedWorking)) +
+  ggtitle("Idade Que Iniciou na Função")
+
+ggplot(data = subset(dados_rh, !is.na(JobRole))) + geom_boxplot(aes(JobRole, Age)) +
+  ggtitle("Idade Por Função")
+
+ggplot(data = subset(dados_rh, !is.na(JobRole))) + geom_boxplot(aes(JobRole, YearsAtCompany)) +
+  ggtitle("Tempo de Empresa (em anos)")
+
+ggplot(data = na.omit(dados_rh)) + geom_bar(aes(JobRole, fill = Education), position = "fill") +
+  ggtitle("Nível de Educação Por Função") + 
+  ylab("Proportion")
+
+# Plots de análise multivariada para variáveis normalmente usadas durante o processo de contratação
+ggplot(data = dados_rh_1) + 
+  geom_bar(aes(x = Education , fill = Attrition), position = 'fill') + 
+  facet_grid(.~Department)
+
+ggplot(data = dados_rh_1) + 
+  geom_bar(aes(x = Education , fill = Attrition), position = 'fill') + 
+  facet_grid(.~JobRole)
+
+ggplot(data = dados_rh_1) + 
+  geom_bar(aes(x = EducationField , fill = Attrition), position = 'fill') + 
+  facet_grid(.~JobRole) + 
+  theme(axis.text.x = element_text(angle = -90, hjust = 0))
+
+# Plots de análise multivariada para variáveis normalmente usadas após o processo de contratação
+ggplot(dados_rh_1) + geom_bar(aes(x = Age, fill = Attrition), position = 'fill') 
+ggplot(dados_rh_1) + geom_bar(aes(x = Department, fill = Attrition), position = 'fill') 
+ggplot(dados_rh_1) + geom_bar(aes(x = DistanceFromHome, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(x = `Employee Source`, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(x = JobRole, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(x = MaritalStatus, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(x = AverageTenure, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(x = Education, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(x = EducationField, fill = Attrition),position ='fill')
+ggplot(dados_rh_1) + geom_bar(aes(x = Gender, fill = Attrition), position = 'fill')
+
+# Plots de análise multivariada entre algumas variáveis e o status do funcionário
+ggplot(dados_rh_1) + geom_boxplot(aes(Attrition, MonthlyIncome))
+ggplot(dados_rh_1) + geom_boxplot(aes(Attrition, PercentSalaryHike))
+ggplot(dados_rh_1) + geom_bar(aes(TrainingTimesLastYear, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(BusinessTravel, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(OverTime, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(StockOptionLevel, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(EnvironmentSatisfaction, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(JobSatisfaction, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(JobInvolvement, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(RelationshipSatisfaction, fill = Attrition), position = 'fill')
+ggplot(dados_rh_1) + geom_bar(aes(WorkLifeBalance, fill = Attrition), position = 'fill')
+
+##### Modelagem Preditiva ##### 
+
+# Vamos concentrar nosso trabalho em tentar ajudar o RH a recrutar melhor visando evitar atritos 
+# e, consequentemente, demissões.
+
+# Criaremos 5 versões do modelo e para cada um vamos explorar as opções e interpretar o resultado.
+
+# Primeira versão do modelo com algumas variáveis
+?glm
+modelo_v1 <- glm(Attrition ~ Age + Department + DistanceFromHome + `Employee Source` + 
+                   JobRole + MaritalStatus + AverageTenure + PriorYearsOfExperience + Gender + 
+                   Education + EducationField, 
+                 family = binomial, 
+                 data = dados_rh)
+
+summary(modelo_v1)
+?vif
+vif(modelo_v1)
+
+# Vamos dividir os dados em treino e teste. Vamos trabalhar com os dados sem registros de demitidos.
+set.seed(2004)
+index_treino <- sample.split(Y = dados_rh_1$Attrition, SplitRatio = 0.7)
+dados_rh_1_treino <- subset(dados_rh_1, train = T)
+dados_rh_1_teste <- subset(dados_rh_1, train = F)
+
+# Segunda versão do modelo com dados de treino
+modelo_v2 <- glm(Attrition ~ Age + Department + DistanceFromHome + `Employee Source` + 
+                   JobRole + MaritalStatus + AverageTenure + PriorYearsOfExperience + Gender + 
+                   Education + EducationField, 
+                 family = binomial, 
+                 data = dados_rh_1_treino)
+
+summary(modelo_v2)
+vif(modelo_v2)
+
+# Previsões
+threshold <- 0.5
+previsoes_v2 <- predict(modelo_v2, type = 'response', newdata = dados_rh_1_teste)
+previsoes_finais_v2 <- ifelse(previsoes_v2 > threshold, 'Voluntary Resignation', 'Current employee')
+table(dados_rh_1_teste$Attrition, previsoes_finais_v2)
+
+# Terceira versão do modelo com dados de treino e sem variáveis de educação
+modelo_v3 <- glm(Attrition ~ Age + Department + DistanceFromHome + `Employee Source` + 
+                   JobRole + MaritalStatus + AverageTenure + PriorYearsOfExperience + Gender, 
+                 family = binomial, 
+                 data = dados_rh_1_treino)
+
+summary(modelo_v3)
+vif(modelo_v3)
+
+# Previsões
+threshold <- 0.5
+previsoes_v3 <- predict(modelo_v3, type = 'response', newdata = dados_rh_1_teste)
+previsoes_finais_v3 <- ifelse(previsoes_v3 > threshold, 'Voluntary Resignation', 'Current employee')
+table(dados_rh_1_teste$Attrition, previsoes_finais_v3)
+
+# Quarta versão do modelo com dados de treino e sem variáveis de educação e genero
+modelo_v4 <- glm(Attrition ~ Age + Department + DistanceFromHome + `Employee Source` + 
+                   JobRole + MaritalStatus + AverageTenure + PriorYearsOfExperience, 
+                 family = binomial, 
+                 data = dados_rh_1_treino)
+
+summary(modelo_v4)
+vif(modelo_v4)
+
+# Previsões
+threshold <- 0.5
+previsoes_v4 <- predict(modelo_v4, type = 'response', newdata = dados_rh_1_teste)
+previsoes_finais_v4 <- ifelse(previsoes_v4 > threshold, 'Voluntary Resignation', 'Current employee')
+table(dados_rh_1_teste$Attrition, previsoes_finais_v4)
+
+# Quinta versão do modelo com dados de treino e sem variáveis de educação, genero e outro algoritmo
+?rpart
+modelo_v5 <- rpart(Attrition ~ Age + Department + DistanceFromHome + JobRole + MaritalStatus + 
+                     AverageTenure + PriorYearsOfExperience, 
+                   method = "class", 
+                   control = rpart.control(minsplit = 500, cp = 0),
+                   data = dados_rh_1_treino)
+
+summary(modelo_v5)
+rpart.plot(modelo_v5)
+
+
+# Fim
+
